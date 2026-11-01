@@ -34,9 +34,9 @@
   <string name="aichat_initializing_title" translatable="true" description="Status indicator when initializing model. [CHAR_LIMIT=31]">Initializing model</string>
   <string name="aichat_initializing_content" translatable="true" description="Loading message shown while a chat or translator session is initializing. [CHAR_LIMIT=110]">Sit tight, this can take up to 1 minute</string>
   <string name="app_intro" translatable="true" description="Introduction text shown on the home screen. [CHAR_LIMIT=90]">Explore a world of amazing on-device models from</string>
-  <string name="app_name" translatable="false">Google AI Edge Gallery</string>
-  <string name="app_name_first_part" translatable="false">Google AI</string>
-  <string name="app_name_second_part" translatable="false">Edge Gallery</string>
+  <string name="app_name" translatable="false">Secretary Ondevice</string>
+  <string name="app_name_first_part" translatable="false">Secretary</string>
+  <string name="app_name_second_part" translatable="false">Ondevice</string>
   <string name="askimage_emptystate_title" translatable="false">Ask Image</string>
   <string name="askimage_emptystate_content" translatable="true" description="Instructions shown when starting a chat with image input, explaining how to add images (up to 10). [CHAR_LIMIT=203]">To get started, tap the + below to add an image (max 10 images per chat) and type a prompt to ask a question about it!</string>
   <string name="askimage_emptystate_content_aicore" translatable="true" description="Instructions shown when starting a chat with image input for AICore models, explaining how to add a single image. [CHAR_LIMIT=200]">To get started, tap the + below to add an image (max 1 image per chat) and type a prompt to ask a question about it!</string>
@@ -207,7 +207,7 @@
   <string name="settings_dialog_view_app_terms_of_service" translatable="true" description="Button label to open and read the application's terms of service. [CHAR_LIMIT=30]">View App Terms of Service</string>
   <string name="settings_dialog_gemma_prohibited_use_policy" translatable="true" description="Link text pointing to the Gemma model's prohibited use policy document. [CHAR_LIMIT=44]">Gemma Prohibited Use Policy</string>
   <string name="settings_dialog_firebase_analytics_title" translatable="true" description="Title for the settings toggle control to opt-in/out of analytics tracking. [CHAR_LIMIT=31]">Firebase Analytics</string>
-  <string name="settings_dialog_firebase_analytics_description" translatable="true" description="Description for the Firebase Analytics toggle explaining that it helps improve the app. [CHAR_LIMIT=90]">Send usage data to help improve AI Edge Gallery</string>
+  <string name="settings_dialog_firebase_analytics_description" translatable="true" description="Description for the Firebase Analytics toggle explaining that it helps improve the app. [CHAR_LIMIT=90]">Send usage data to help improve Secretary Ondevice</string>
   <string name="share" translatable="true" description="Button label to share content (images, text) via other apps. [CHAR_LIMIT=9]">Share</string>
   <string name="slide_up_to_cancel" translatable="true" description="Instruction text telling the user they can slide their finger up to cancel voice recording. [CHAR_LIMIT=31]">Slide up to cancel</string>
   <string name="system_prompt_placeholder" translatable="true" description="Placeholder hint text inside the system prompt editor text field showing example instructions. [CHAR_LIMIT=170]">Enter system instructions (e.g., \"You are a versatile assistant. Provide accurate, context-aware responses in a professional tone.\")</string>
@@ -220,7 +220,7 @@
   <string name="test" translatable="true" description="Button label or header for testing functionality. [CHAR_LIMIT=18]">Test</string>
   <string name="text_image_generation_text_field_placeholder" translatable="true" description="Placeholder hint in a text field for generating images from text prompts. [CHAR_LIMIT=30]">Type prompt…</string>
   <string name="text_input_placeholder_llm_chat" translatable="true" description="Placeholder hint in the chat message input field (e.g., 'Type prompt...'). [CHAR_LIMIT=30]">Type prompt…</string>
-  <string name="tos_dialog_title_app" translatable="true" description="Title of the onboarding Terms of Service dialog. [CHAR_LIMIT=45]">Welcome to Google AI Edge Gallery</string>
+  <string name="tos_dialog_title_app" translatable="true" description="Title of the onboarding Terms of Service dialog. [CHAR_LIMIT=45]">Welcome to Secretary Ondevice</string>
   <!-- Body text of the Terms of Service dialog. Contains links to Google Terms of Service and Privacy Policy. -->
   <string name="tos_dialog_body" translatable="true" description="Main legal and privacy text inside the Terms of Service dialog, including links to Google policies. [CHAR_LIMIT=997]">By using this app, you agree to the [Google Terms of Service](https://policies.google.com/terms?hl=en-US).\n\nThis app collects aggregated usage metrics to understand user engagement, such as error messages, app actions, IP inferred approximate location, OS version. This data is processed in accordance with the [Google Privacy Policy](https://policies.google.com/privacy?hl=en-US).\n\nYour use of each model is subject to the applicable model license terms.</string>
   <!-- Title of the Gemma Terms of Use dialog. -->
@@ -1715,7 +1715,7 @@
   <string name="model_status_unavailable_using" translatable="true" description="Status label beneath an ASR or TTS model selector when the selected model can't be used and the app uses another speech engine instead. %1$s is the selected model name, for example 'Kokoro 82M (TTS)'. %2$s is the engine used instead, for example 'Android System (Built-in)'. [CHAR_LIMIT=80]">%1$s unavailable · using %2$s</string>
   <string name="model_tag_asr" translatable="true" description="Short modality badge tag displayed on Automatic Speech Recognition supplementary model cards. [CHAR_LIMIT=8]">ASR</string>
   <string name="model_tag_tts" translatable="true" description="Short modality badge tag displayed on Text-to-Speech supplementary model cards. [CHAR_LIMIT=8]">TTS</string>
-  <string name="tts_voice_preview_text" translatable="true" description="Sample sentence spoken aloud (not shown on screen) when the user taps a text-to-speech voice in Model Manager or settings, so they can hear how the voice sounds. 'AI Edge Gallery' is a product name and must not be translated. [CHAR_LIMIT=120]">Welcome to AI Edge Gallery</string>
+  <string name="tts_voice_preview_text" translatable="true" description="Sample sentence spoken aloud (not shown on screen) when the user previews a voice. [CHAR_LIMIT=120]">Welcome to Secretary Ondevice</string>
   <string name="cd_tts_preview_voice" translatable="true" description="Content description for the Play button that synthesizes a sample preview for a specific TTS voice profile, where %1$s is the voice display name. [CHAR_LIMIT=45]">Preview %1$s voice</string>
   <string name="cd_tts_stop_preview_voice" translatable="true" description="Content description for the Stop button that stops an active TTS voice profile preview, where %1$s is the voice display name. [CHAR_LIMIT=45]">Stop %1$s voice preview</string>
   <string name="tts_default_for_read_aloud" translatable="true" description="Checkbox label on a downloaded supplementary text-to-speech model card in Model Manager; when checked, this model reads chat responses aloud instead of the built-in Android voice. [CHAR_LIMIT=50]">Default to this model for read aloud</string>

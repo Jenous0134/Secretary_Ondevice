@@ -33,7 +33,7 @@ android {
   compileSdk { this.version = release(37) { minorApiLevel = 0 } }
 
   defaultConfig {
-    applicationId = "com.google.aiedge.gallery"
+    applicationId = "com.jenous.secretary.ondevice"
     minSdk = 31
     targetSdk = 37
     versionCode = 51
@@ -44,7 +44,7 @@ android {
     manifestPlaceholders["appAuthRedirectScheme"] =
         "REPLACE_WITH_YOUR_REDIRECT_SCHEME_IN_HUGGINGFACE_APP"
     manifestPlaceholders["applicationName"] = "com.google.ai.edge.gallery.GalleryApplication"
-    manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher"
+    manifestPlaceholders["appIcon"] = "@drawable/sec_ond_icon"
 
     buildConfigField("String", "FEEDBACK_API_KEY", "\"\"")
 
@@ -146,6 +146,7 @@ dependencies {
   implementation(libs.mlkit.genai.schema)
   ksp(libs.mlkit.genai.schema.compiler)
   implementation(libs.tasks.audio)
+  implementation(libs.pdfbox.android)
 }
 
 configurations.all { resolutionStrategy.force("org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.0") }

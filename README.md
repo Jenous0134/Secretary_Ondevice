@@ -1,93 +1,53 @@
-# Google AI Edge Gallery ✨
+# Secretary Ondevice (Sec_Ond)
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/google-ai-edge/gallery)](https://github.com/google-ai-edge/gallery/releases)
+개인 사업의 문서, 일정, 업무를 통합 관리하고 등록 자료에 관해 질문할 수 있는 Android 온디바이스 AI 비서입니다.
 
-**Explore, Experience, and Evaluate the Future of On-Device Generative AI with Google AI Edge.**
+Google AI Edge Gallery의 LiteRT-LM 모델 실행·관리 기반을 활용하며, 사업 데이터와 문서 검색은 기기 내부에서 처리합니다.
 
-AI Edge Gallery is the premier destination for running the world's most powerful open-source Large Language Models (LLMs) on your mobile device. Experience high-performance Generative AI directly on your hardware—fully offline, private, and lightning-fast.
+## 주요 기능
 
-**Now Featuring: [EmbeddingGemma 2](https://developers.googleblog.com/google-ai-edge-with-embeddinggemma-2/)**
+- 사업 상태, 기간, 지원기관, 담당자, 참여자 및 메모 관리
+- PDF, DOCX, HWPX, TXT 문서 텍스트 추출과 로컬 검색
+- HWP 원본 등록 및 보관
+- 일정과 D-7, D-3, D-1 로컬 알림
+- 업무, 담당자, 우선순위, 산출물, 체크리스트, 진행률 관리
+- 사업별 KPI 및 목표 관리
+- 등록 문서를 근거로 하는 로컬 RAG 질의응답
+- 모델이 없을 때도 동작하는 일정·업무·원문 검색 모드
+- 근거 문서와 문단 표시
+- 데이터베이스와 등록 문서 ZIP 백업·복원
+- 온디바이스 모델 다운로드와 직접 가져오기
 
-The latest version brings official support for the newly released EmbeddingGemma 2 model. With this release, we bring cutting edge, multimodal semantic search running 100% on your device. Try out these new capabilities in our new features Instant Media Search and Video Moment Finder.
+## 앱 정보
 
+- 표시 이름: `Secretary Ondevice`
+- 약칭: `Sec_Ond`
+- Application ID: `com.jenous.secretary.ondevice`
+- 최소 Android 버전: Android 12 (API 31)
 
-| **Install the app today from Google Play** | **Install the app today from App Store** | **Download for macOS** |
-| :--- | :--- | :--- |
-| <a href='https://play.google.com/store/apps/details?id=com.google.ai.edge.gallery'><img alt='Get it on Google Play' height="120" src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/></a> | <a href="https://apps.apple.com/us/app/google-ai-edge-gallery/id6749645337?itscg=30200&itsct=apps_box_badge&mttnsubad=6749645337" style="display: inline-block;"> <img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1771977600" alt="Download on the App Store" style="width: 244px; height: 88px; vertical-align: middle; object-fit: contain;" /></a> | <a href="https://dl.google.com/google-ai-edge-gallery/macos/dmg/GoogleAIEdgeGallery-0.1.0.dmg"><img alt='Download for macOS' width="257" height="97" src="https://github.com/user-attachments/assets/29c70795-93b3-4e8b-8752-0cad4e413182" /></a> |
+## 빌드
 
-For users without Google Play access, install the apk from the [**latest release**](https://github.com/google-ai-edge/gallery/releases/latest/)
+Android Studio에서 `Android/src` 폴더를 프로젝트로 엽니다. 또는 다음 명령을 사용합니다.
 
+```powershell
+cd Android/src
+./gradlew assembleDebug
+```
 
-## App Preview
+Hugging Face 모델 다운로드를 사용하려면 [DEVELOPMENT.md](DEVELOPMENT.md)의 OAuth 설정을 적용해야 합니다. 로컬 모델 파일 가져오기는 별도의 OAuth 설정 없이 사용할 수 있습니다.
 
-<img width="480" alt="01" src="https://github.com/user-attachments/assets/a270ffe9-c557-4f7d-8af1-209868a5cc95" />
-<img width="480" alt="02" src="https://github.com/user-attachments/assets/9480e21a-3545-41b3-945a-29fdf9be3b8d" />
-<img width="480" alt="03" src="https://github.com/user-attachments/assets/d82796c0-4072-4a99-bbe9-bbf3a9e314ff" />
-<img width="480" alt="04" src="https://github.com/user-attachments/assets/2bd59bc5-4b20-4f7a-b44f-6fc3cd217d22" />
-<img width="480" alt="05" src="https://github.com/user-attachments/assets/ebff12e8-60d5-4efa-96dd-2eaa5f5457c4" />
-<img width="480" alt="06" src="https://github.com/user-attachments/assets/c4891c86-e114-44cf-be99-5f948fc77bc3" />
-<img width="480" alt="07" src="https://github.com/user-attachments/assets/7f690bba-fcf9-4926-9142-c4176dc04672" />
-<img width="480" alt="08" src="https://github.com/user-attachments/assets/31f1d25f-f1ec-41bf-bb39-1c5f9a36223d" />
+## 문서 지원 범위
 
-## ✨ Core Features
+| 형식 | 지원 방식 |
+|---|---|
+| PDF | 텍스트 추출 및 검색 |
+| DOCX | 문단 텍스트 추출 및 검색 |
+| HWPX | XML 기반 텍스트 추출 및 검색 |
+| TXT/Markdown | 직접 읽기 및 검색 |
+| HWP | 원본 보관; PDF 또는 HWPX 변환 권장 |
 
-* **Agent Skills**: Transform your LLM from a conversationalist into a proactive assistant. Use the Agent Skills tile to augment model capabilities with tools like Wikipedia for fact-grounding, interactive maps, and rich visual summary cards. You can even load modular skills from a URL or browse community contributions on GitHub Discussions.
+스캔 PDF는 OCR을 거치지 않으면 텍스트 검색이 제한됩니다.
 
-* **AI Chat with ASR & TTS**: Talk to your model instead of typing. Tap the mic button to dictate your message with on-device speech recognition, and tap the speaker on any reply (or turn on auto-play) to hear it read aloud. Choose your speech recognition and text-to-speech engines, voices, and languages in the chat's Audio settings.
+## 라이선스
 
-* **XR Language Teacher**: Learn a new language from the world around you. Point your camera at an object and ask about it by image, voice, or text. Your AI teacher answers in the language you're learning, reads the answer aloud, and turns key words into vocabulary cards you can save and study later. Use it on your phone, or hands-free with supported Android XR glasses.
-
-* **Instant Media Search**: Explore your photo library (or built-in sample media) with fast, search-as-you-type natural language queries and image-to-image similarity matching—with zero cloud roundtrips.
-
-* **Video Moment Finder**: Pinpoint exact moments inside videos using natural language descriptions. Jump straight to highlighted timestamps on an interactive timeline, trim clips, and save or export your favorite moments
-
-* **Ask Image**: Use multimodal power to identify objects, solve visual puzzles, or get detailed descriptions using your device’s camera or photo gallery.
-
-* **Audio Scribe**: Transcribe and translate voice recordings into text in real-time using high-efficiency on-device language models.
-
-* **Prompt Lab**: A dedicated workspace to test different prompts and single-turn use cases with granular control over model parameters like temperature and top-k.
-
-* **Mobile Actions**: Unlock offline device controls and automated tasks powered entirely by a finetune of FunctionGemma 270m.
-
-* **Tiny Garden**: A fun, experimental mini-game that uses natural language to plant and harvest a virtual garden using a finetune of FunctionGemma 270m.
-
-* **Model Management & Benchmark**: Gallery is a flexible sandbox for a wide variety of open-source models. Easily download models from the list or load your own custom models. Manage your model library effortlessly and run benchmark tests to understand exactly how each model performs on your specific hardware.
-
-* **100% On-Device Privacy**: All model inferences happen directly on your device hardware. No internet is required, ensuring total privacy for your prompts, images, and sensitive data.
-
-## 🏁 Get Started in Minutes!
-
-1. **Check OS Requirement**: Android 12 and up, and iOS 17 and up.
-2.  **Download the App:**
-    - Install the app from [Google Play](https://play.google.com/store/apps/details?id=com.google.ai.edge.gallery) or [App Store](https://apps.apple.com/us/app/google-ai-edge-gallery/id6749645337).
-    - For users without Google Play access: install the apk from the [**latest release**](https://github.com/google-ai-edge/gallery/releases/latest/)
-3.  **Install & Explore:** For detailed installation instructions (including for corporate devices) and a full user guide, head over to our [**Project Wiki**](https://github.com/google-ai-edge/gallery/wiki)!
-
-## 🛠️ Technology Highlights
-
-*   **Google AI Edge:** Core APIs and tools for on-device ML.
-*   **LiteRT:** Lightweight runtime for optimized model execution.
-*   **Hugging Face Integration:** For model discovery and download.
-
-## ⌨️ Development
-
-Check out the [development notes](DEVELOPMENT.md) for instructions about how to build the app locally.
-
-## 🤝 Feedback
-
-This is an **experimental Beta release**, and your input is crucial!
-
-*   🐞 **Found a bug?** [Report it here!](https://github.com/google-ai-edge/gallery/issues/new?assignees=&labels=bug&template=bug_report.md&title=%5BBUG%5D)
-*   💡 **Have an idea?** [Suggest a feature!](https://github.com/google-ai-edge/gallery/issues/new?assignees=&labels=enhancement&template=feature_request.md&title=%5BFEATURE%5D)
-
-## 📄 License
-
-Licensed under the Apache License, Version 2.0. See the [LICENSE](LICENSE) file for details.
-
-## 🔗 Useful Links
-
-*   [**Project Wiki (Detailed Guides)**](https://github.com/google-ai-edge/gallery/wiki)
-*   [Hugging Face LiteRT Community](https://huggingface.co/litert-community)
-*   [LiteRT-LM](https://github.com/google-ai-edge/LiteRT-LM)
-*   [Google AI Edge Documentation](https://ai.google.dev/edge)
+Apache License 2.0. Google AI Edge Gallery에서 유래한 소스의 기존 저작권 및 라이선스 고지를 유지합니다.

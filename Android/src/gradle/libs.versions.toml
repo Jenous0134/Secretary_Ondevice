@@ -52,6 +52,7 @@ mlkitGenaiSpeechRecognition = "1.0.0-alpha2"
 mlkitGenaiTextToSpeech = "1.0.0-alpha1"
 mlkitGenaiSchema = "1.0.0-alpha2"
 tasksAudio = "1.2.0"
+pdfboxAndroid = "2.0.27.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -122,6 +123,7 @@ mlkit-genai-text-to-speech = { group = "com.google.mlkit", name = "genai-text-to
 mlkit-genai-schema = { group = "com.google.mlkit", name = "genai-schema", version.ref = "mlkitGenaiSchema" }
 mlkit-genai-schema-compiler = { group = "com.google.mlkit", name = "genai-schema-compiler", version.ref = "mlkitGenaiSchema" }
 tasks-audio = { group = "com.google.mediapipe", name = "tasks-audio", version.ref = "tasksAudio" }
+pdfbox-android = { group = "com.tom-roush", name = "pdfbox-android", version.ref = "pdfboxAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

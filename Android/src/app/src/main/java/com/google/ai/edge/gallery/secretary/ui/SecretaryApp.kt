@@ -29,13 +29,13 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
+// Retained for the dormant business-management screens, which can be reintroduced as services.
 private enum class MainTab(val label: String) { HOME("홈"), PROJECTS("사업"), SCHEDULE("일정"), WORK("업무"), ASSISTANT("AI 비서") }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SecretaryApp(modelManagerViewModel: ModelManagerViewModel, vm: SecretaryViewModel = viewModel()) {
   val state by vm.uiState.collectAsStateWithLifecycle()
-  var tab by remember { mutableStateOf(MainTab.HOME) }
   var settings by remember { mutableStateOf(false) }
   val modelManagerState by modelManagerViewModel.uiState.collectAsStateWithLifecycle()
   val assistantModel = modelManagerViewModel.getModelByName(FIXED_ASSISTANT_MODEL_NAME)
@@ -56,18 +56,10 @@ fun SecretaryApp(modelManagerViewModel: ModelManagerViewModel, vm: SecretaryView
   }
 
   Scaffold(
-    topBar = { TopAppBar(title = { Column { Text("Secretary Ondevice", fontWeight = FontWeight.Bold); Text("Sec_Ond · 오프라인 업무 비서", style = MaterialTheme.typography.labelSmall) } }, actions = { IconButton(onClick = { settings = true }) { Icon(Icons.Rounded.Settings, "설정") } }) },
-    bottomBar = { NavigationBar { MainTab.entries.forEach { item -> NavigationBarItem(selected = tab == item, onClick = { tab = item }, icon = { Icon(tabIcon(item), item.label) }, label = { Text(item.label) }) } } },
-    floatingActionButton = { when (tab) { MainTab.PROJECTS -> AddProjectButton(vm); MainTab.SCHEDULE -> AddScheduleButton(vm, state.data.projects); MainTab.WORK -> AddWorkButton(vm, state.data.projects); else -> Unit } },
+    topBar = { TopAppBar(title = { Column { Text("Second", fontWeight = FontWeight.Bold); Text("온디바이스 AI 비서", style = MaterialTheme.typography.labelSmall) } }, actions = { IconButton(onClick = { settings = true }) { Icon(Icons.Rounded.Settings, "설정") } }) },
   ) { padding ->
     Box(Modifier.fillMaxSize().padding(padding)) {
-      when (tab) {
-        MainTab.HOME -> HomeScreen(state.data, onTab = { tab = it })
-        MainTab.PROJECTS -> ProjectsScreen(state.data, state.selectedProjectId, vm)
-        MainTab.SCHEDULE -> ScheduleScreen(state.data, vm)
-        MainTab.WORK -> WorkScreen(state.data, vm)
-        MainTab.ASSISTANT -> AssistantScreen(state.data, state.assistantProjectId, state.busy, assistantModel, modelStatus, vm)
-      }
+      AssistantScreen(state.data, state.busy, assistantModel, modelStatus, vm)
       if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
       state.error?.let { error -> AlertDialog(onDismissRequest = vm::clearError, confirmButton = { TextButton(onClick = vm::clearError) { Text("확인") } }, title = { Text("처리할 수 없습니다") }, text = { Text(error) }) }
     }
@@ -177,15 +169,18 @@ private fun WorkDetailDialog(work: WorkItem, vm: SecretaryViewModel, onDismiss: 
 }
 
 @Composable
-private fun AssistantScreen(data: SecretarySnapshot, projectId: Long?, busy: Boolean, model: com.google.ai.edge.gallery.data.Model?, modelStatus: ModelDownloadStatusType?, vm: SecretaryViewModel) {
-  var input by remember { mutableStateOf("") }; var menu by remember { mutableStateOf(false) }
+private fun AssistantScreen(data: SecretarySnapshot, busy: Boolean, model: com.google.ai.edge.gallery.data.Model?, modelStatus: ModelDownloadStatusType?, vm: SecretaryViewModel) {
+  var input by remember { mutableStateOf("") }
   Column(Modifier.fillMaxSize()) {
-    Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("AI 개인 비서", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold); Text(when (modelStatus) { ModelDownloadStatusType.SUCCEEDED -> "Gemma 4 E4B · 온디바이스 RAG"; ModelDownloadStatusType.IN_PROGRESS -> "Gemma 4 E4B 다운로드 중 (약 3.7GB)"; ModelDownloadStatusType.FAILED -> "Gemma 4 E4B 다운로드 실패 · 근거 검색 모드"; else -> "Gemma 4 E4B 준비 중" }, style = MaterialTheme.typography.bodySmall) }; Box { AssistChip(onClick = { menu = true }, label = { Text(data.projects.firstOrNull { it.id == projectId }?.name ?: "모든 사업") }); DropdownMenu(menu, { menu = false }) { DropdownMenuItem({ Text("모든 사업") }, { vm.setAssistantProject(null); menu = false }); data.projects.forEach { p -> DropdownMenuItem({ Text(p.name) }, { vm.setAssistantProject(p.id); menu = false }) } } } }
-    LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-      if (data.messages.isEmpty()) item { EmptyCard("예: 이번 주 마감 일정 알려줘\n이 사업의 개발 범위는 무엇이야?\n미완료 업무를 정리해줘") }
-      items(data.messages, key = { it.id }) { msg -> Row(Modifier.fillMaxWidth(), horizontalArrangement = if (msg.role == "user") Arrangement.End else Arrangement.Start) { Surface(color = if (msg.role == "user") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.large, modifier = Modifier.widthIn(max = 520.dp)) { Column(Modifier.padding(14.dp)) { Text(msg.content); if (msg.evidence.isNotBlank()) { HorizontalDivider(Modifier.padding(vertical = 8.dp)); Text("근거: ${msg.evidence.replace("\n", ", ")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary) } } } } }
+    Column(Modifier.fillMaxWidth().padding(16.dp)) {
+      Text("Second", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+      Text(when (modelStatus) { ModelDownloadStatusType.SUCCEEDED -> "Gemma 4 E4B · 원문 그대로 대화"; ModelDownloadStatusType.IN_PROGRESS -> "Gemma 4 E4B 다운로드 중 (약 3.7GB)"; ModelDownloadStatusType.FAILED -> "Gemma 4 E4B 다운로드 실패"; else -> "Gemma 4 E4B 준비 중" }, style = MaterialTheme.typography.bodySmall)
     }
-    Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) { OutlinedTextField(input, { input = it }, Modifier.weight(1f), placeholder = { Text("업무 자료에 대해 질문하세요") }, maxLines = 4); IconButton(onClick = { vm.ask(input, model); input = "" }, enabled = input.isNotBlank() && !busy) { Icon(Icons.Rounded.Send, "전송") } }
+    LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+      if (data.messages.isEmpty()) item { EmptyCard("Gemma 4 E4B와 대화를 시작하세요.\n입력한 내용은 별도의 시스템 프롬프트나 문서 근거 없이 모델에 그대로 전달됩니다.") }
+      items(data.messages, key = { it.id }) { msg -> Row(Modifier.fillMaxWidth(), horizontalArrangement = if (msg.role == "user") Arrangement.End else Arrangement.Start) { Surface(color = if (msg.role == "user") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.large, modifier = Modifier.widthIn(max = 520.dp)) { Text(msg.content, Modifier.padding(14.dp)) } } }
+    }
+    Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) { OutlinedTextField(input, { input = it }, Modifier.weight(1f), placeholder = { Text("메시지를 입력하세요") }, maxLines = 4); IconButton(onClick = { vm.ask(input, model); input = "" }, enabled = input.isNotBlank() && !busy && modelStatus == ModelDownloadStatusType.SUCCEEDED) { Icon(Icons.Rounded.Send, "전송") } }
   }
 }
 
@@ -196,10 +191,10 @@ private fun SettingsScreen(onBack: () -> Unit, onBackup: (android.net.Uri) -> Un
   val restore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { if (it != null) pendingRestore = it }
   Scaffold(topBar = { TopAppBar(title = { Text("설정") }, navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Rounded.ArrowBack, "뒤로") } }) }) { padding -> LazyColumn(Modifier.padding(padding), contentPadding = PaddingValues(16.dp)) {
     item { ListItem(headlineContent = { Text("기본 AI 모델") }, supportingContent = { Text("Gemma 4 E4B · 약 3.7GB · 모델 변경 기능은 제공하지 않습니다.") }, leadingContent = { Icon(Icons.Rounded.Memory, null) }) }
-    item { ListItem(headlineContent = { Text("데이터 백업") }, supportingContent = { Text("DB와 등록 문서를 ZIP으로 내보냅니다.") }, leadingContent = { Icon(Icons.Rounded.Backup, null) }, modifier = Modifier.clickable { backup.launch("Sec_Ond_${System.currentTimeMillis()}.zip") }) }
-    item { ListItem(headlineContent = { Text("데이터 복원") }, supportingContent = { Text("Sec_Ond 백업에서 사업·업무·문서를 복원합니다.") }, leadingContent = { Icon(Icons.Rounded.Restore, null) }, modifier = Modifier.clickable { restore.launch(arrayOf("application/zip", "application/octet-stream")) }) }
+    item { ListItem(headlineContent = { Text("데이터 백업") }, supportingContent = { Text("DB와 등록 문서를 ZIP으로 내보냅니다.") }, leadingContent = { Icon(Icons.Rounded.Backup, null) }, modifier = Modifier.clickable { backup.launch("Second_${System.currentTimeMillis()}.zip") }) }
+    item { ListItem(headlineContent = { Text("데이터 복원") }, supportingContent = { Text("Second 백업에서 저장한 데이터를 복원합니다.") }, leadingContent = { Icon(Icons.Rounded.Restore, null) }, modifier = Modifier.clickable { restore.launch(arrayOf("application/zip", "application/octet-stream")) }) }
     item { ListItem(headlineContent = { Text("오프라인 우선") }, supportingContent = { Text("사업 정보, 문서, 대화 기록은 기기 내부에 저장됩니다.") }, leadingContent = { Icon(Icons.Rounded.Security, null) }) }
-    item { Text("Secretary Ondevice · Sec_Ond\nGoogle AI Edge Gallery 기반 · Apache 2.0", Modifier.padding(16.dp), style = MaterialTheme.typography.bodySmall) }
+    item { Text("Second\nGoogle AI Edge Gallery 기반 · Apache 2.0", Modifier.padding(16.dp), style = MaterialTheme.typography.bodySmall) }
   } }
   pendingRestore?.let { uri -> AlertDialog(onDismissRequest = { pendingRestore = null }, title = { Text("백업을 복원할까요?") }, text = { Text("현재 데이터베이스가 백업 내용으로 교체됩니다. 이 작업은 되돌릴 수 없습니다.") }, confirmButton = { Button(onClick = { onRestore(uri); pendingRestore = null }) { Text("복원") } }, dismissButton = { TextButton(onClick = { pendingRestore = null }) { Text("취소") } }) }
 }

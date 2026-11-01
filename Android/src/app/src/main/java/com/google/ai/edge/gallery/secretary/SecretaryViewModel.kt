@@ -10,7 +10,6 @@ import com.google.ai.edge.gallery.secretary.documents.DocumentImporter
 import com.google.ai.edge.gallery.secretary.notifications.SecretaryReminderReceiver
 import com.google.ai.edge.gallery.data.Model
 import com.google.ai.edge.gallery.ui.llmchat.LlmChatModelHelper
-import com.google.ai.edge.litertlm.Contents
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
@@ -70,30 +69,30 @@ class SecretaryViewModel(application: Application) : AndroidViewModel(applicatio
       _uiState.update { it.copy(busy = true) }
       withContext(Dispatchers.IO) {
         database.saveChat(ChatMessage(role = "user", content = question))
-        val evidence = database.searchEvidence(question, _uiState.value.assistantProjectId)
-        val fallback = buildAnswer(question, evidence, database.snapshot())
-        val answer = if (model != null && evidence.isNotEmpty()) runLocalLlm(model, question, evidence).getOrNull()?.takeIf { it.isNotBlank() } ?: fallback else fallback
-        database.saveChat(ChatMessage(role = "assistant", content = answer, evidence = evidence.joinToString("\n") { "${it.documentTitle}#${it.chunkIndex + 1}" }))
+        val answer =
+          if (model != null) {
+            runRawLocalLlm(model, question).getOrNull()?.takeIf { it.isNotBlank() }
+              ?: "모델 응답을 생성하지 못했습니다. 모델 다운로드 상태를 확인한 뒤 다시 시도해 주세요."
+          } else {
+            "Gemma 4 E4B 모델을 준비하고 있습니다. 다운로드가 완료된 뒤 다시 시도해 주세요."
+          }
+        database.saveChat(ChatMessage(role = "assistant", content = answer))
       }
       refresh()
     }
   }
 
-  private suspend fun runLocalLlm(model: Model, question: String, evidence: List<Evidence>): Result<String> = runCatching {
+  /** Sends the user's text directly to the model: no system instruction, RAG context, or wrapper. */
+  private suspend fun runRawLocalLlm(model: Model, question: String): Result<String> = runCatching {
     val context = getApplication<Application>()
-    val system = Contents.of("당신은 개인 업무 비서 Sec_Ond입니다. 제공된 근거만 사용하고, 모르면 모른다고 답하세요. 날짜·금액·요구사항 뒤에는 [문서명#문단] 형태의 근거를 표시하세요. 한국어로 간결하게 답하세요.")
     if (model.instance == null) suspendCancellableCoroutine { continuation ->
       LlmChatModelHelper.initialize(context, model, "secretary_assistant", false, false, { error ->
         if (continuation.isActive) { if (error.isBlank()) continuation.resume(Unit) else continuation.cancel(IllegalStateException(error)) }
-      }, systemInstruction = system, coroutineScope = viewModelScope)
-    }
-    val prompt = buildString {
-      append("질문: $question\n\n검색 근거:\n")
-      evidence.forEach { append("[${it.documentTitle}#${it.chunkIndex + 1}] ${it.text}\n\n") }
+      }, systemInstruction = null, coroutineScope = viewModelScope)
     }
     suspendCancellableCoroutine { continuation ->
       val output = StringBuilder()
-      LlmChatModelHelper.runInference(model, prompt, { partial, done, _ ->
+      LlmChatModelHelper.runInference(model, question, { partial, done, _ ->
         output.append(partial)
         if (done && continuation.isActive) continuation.resume(output.toString())
       }, cleanUpListener = {}, onError = { if (continuation.isActive) continuation.cancel(IllegalStateException(it)) }, coroutineScope = viewModelScope)

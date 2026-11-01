@@ -1801,6 +1801,13 @@ constructor(
         }
 
         if (modelAllowlist == null) {
+          // Secretary Ondevice deliberately ships one fixed assistant model. Loading this
+          // bundled catalog first keeps the model identity stable and lets the app show its
+          // download state before it has ever contacted the network.
+          modelAllowlist = readSecretaryAllowlist()
+        }
+
+        if (modelAllowlist == null) {
           // Load from github.
           var version = BuildConfig.VERSION_NAME.replace(".", "_")
           val url = getAllowlistUrl(version)
@@ -1979,6 +1986,16 @@ constructor(
       Log.e(TAG, "failed to write model allowlist to disk", e)
     }
   }
+
+  private fun readSecretaryAllowlist(): ModelAllowlist? =
+    try {
+      context.assets.open("sec_ond_allowlist.json").bufferedReader().use { reader ->
+        Gson().fromJson(reader, ModelAllowlist::class.java)
+      }
+    } catch (e: Exception) {
+      Log.w(TAG, "No bundled Secretary Ondevice model catalog found", e)
+      null
+    }
 
   private fun readModelAllowlistFromDisk(
     file: File = File(modelsDir, MODEL_ALLOWLIST_FILENAME)

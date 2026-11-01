@@ -23,7 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.ai.edge.gallery.secretary.SecretaryViewModel
 import com.google.ai.edge.gallery.secretary.data.*
-import com.google.ai.edge.gallery.ui.modelmanager.GlobalModelManager
+import com.google.ai.edge.gallery.data.ModelDownloadStatusType
 import com.google.ai.edge.gallery.ui.modelmanager.ModelManagerViewModel
 import java.time.Instant
 import java.time.ZoneId
@@ -37,17 +37,21 @@ fun SecretaryApp(modelManagerViewModel: ModelManagerViewModel, vm: SecretaryView
   val state by vm.uiState.collectAsStateWithLifecycle()
   var tab by remember { mutableStateOf(MainTab.HOME) }
   var settings by remember { mutableStateOf(false) }
-  var modelManager by remember { mutableStateOf(false) }
-  var assistantModel by remember { mutableStateOf<com.google.ai.edge.gallery.data.Model?>(null) }
+  val modelManagerState by modelManagerViewModel.uiState.collectAsStateWithLifecycle()
+  val assistantModel = modelManagerViewModel.getModelByName(FIXED_ASSISTANT_MODEL_NAME)
+  val modelStatus = assistantModel?.let { modelManagerState.modelDownloadStatus[it.name]?.status }
   val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
   LaunchedEffect(Unit) { if (Build.VERSION.SDK_INT >= 33) permission.launch(Manifest.permission.POST_NOTIFICATIONS) }
 
-  if (modelManager) {
-    GlobalModelManager(viewModel = modelManagerViewModel, navigateUp = { modelManager = false }, onModelSelected = { _, model -> assistantModel = model; modelManagerViewModel.selectModel(model); modelManager = false }, onBenchmarkClicked = {})
-    return
+  LaunchedEffect(assistantModel?.name, modelStatus) {
+    val model = assistantModel ?: return@LaunchedEffect
+    modelManagerViewModel.selectModel(model)
+    if (modelStatus == null || modelStatus == ModelDownloadStatusType.NOT_DOWNLOADED) {
+      modelManagerViewModel.downloadModel(task = null, model = model)
+    }
   }
   if (settings) {
-    SettingsScreen(onBack = { settings = false }, onModels = { modelManager = true }, onBackup = vm::backup, onRestore = vm::restore)
+    SettingsScreen(onBack = { settings = false }, onBackup = vm::backup, onRestore = vm::restore)
     return
   }
 
@@ -62,7 +66,7 @@ fun SecretaryApp(modelManagerViewModel: ModelManagerViewModel, vm: SecretaryView
         MainTab.PROJECTS -> ProjectsScreen(state.data, state.selectedProjectId, vm)
         MainTab.SCHEDULE -> ScheduleScreen(state.data, vm)
         MainTab.WORK -> WorkScreen(state.data, vm)
-        MainTab.ASSISTANT -> AssistantScreen(state.data, state.assistantProjectId, state.busy, assistantModel, vm)
+        MainTab.ASSISTANT -> AssistantScreen(state.data, state.assistantProjectId, state.busy, assistantModel, modelStatus, vm)
       }
       if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth().align(Alignment.TopCenter))
       state.error?.let { error -> AlertDialog(onDismissRequest = vm::clearError, confirmButton = { TextButton(onClick = vm::clearError) { Text("확인") } }, title = { Text("처리할 수 없습니다") }, text = { Text(error) }) }
@@ -173,10 +177,10 @@ private fun WorkDetailDialog(work: WorkItem, vm: SecretaryViewModel, onDismiss: 
 }
 
 @Composable
-private fun AssistantScreen(data: SecretarySnapshot, projectId: Long?, busy: Boolean, model: com.google.ai.edge.gallery.data.Model?, vm: SecretaryViewModel) {
+private fun AssistantScreen(data: SecretarySnapshot, projectId: Long?, busy: Boolean, model: com.google.ai.edge.gallery.data.Model?, modelStatus: ModelDownloadStatusType?, vm: SecretaryViewModel) {
   var input by remember { mutableStateOf("") }; var menu by remember { mutableStateOf(false) }
   Column(Modifier.fillMaxSize()) {
-    Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("AI 개인 비서", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold); Text(if (model == null) "근거 검색 모드 · 설정에서 모델을 선택하세요." else "${model.displayName.ifBlank { model.name }} · 온디바이스 RAG", style = MaterialTheme.typography.bodySmall) }; Box { AssistChip(onClick = { menu = true }, label = { Text(data.projects.firstOrNull { it.id == projectId }?.name ?: "모든 사업") }); DropdownMenu(menu, { menu = false }) { DropdownMenuItem({ Text("모든 사업") }, { vm.setAssistantProject(null); menu = false }); data.projects.forEach { p -> DropdownMenuItem({ Text(p.name) }, { vm.setAssistantProject(p.id); menu = false }) } } } }
+    Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text("AI 개인 비서", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold); Text(when (modelStatus) { ModelDownloadStatusType.SUCCEEDED -> "Gemma 4 E4B · 온디바이스 RAG"; ModelDownloadStatusType.IN_PROGRESS -> "Gemma 4 E4B 다운로드 중 (약 3.7GB)"; ModelDownloadStatusType.FAILED -> "Gemma 4 E4B 다운로드 실패 · 근거 검색 모드"; else -> "Gemma 4 E4B 준비 중" }, style = MaterialTheme.typography.bodySmall) }; Box { AssistChip(onClick = { menu = true }, label = { Text(data.projects.firstOrNull { it.id == projectId }?.name ?: "모든 사업") }); DropdownMenu(menu, { menu = false }) { DropdownMenuItem({ Text("모든 사업") }, { vm.setAssistantProject(null); menu = false }); data.projects.forEach { p -> DropdownMenuItem({ Text(p.name) }, { vm.setAssistantProject(p.id); menu = false }) } } } }
     LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
       if (data.messages.isEmpty()) item { EmptyCard("예: 이번 주 마감 일정 알려줘\n이 사업의 개발 범위는 무엇이야?\n미완료 업무를 정리해줘") }
       items(data.messages, key = { it.id }) { msg -> Row(Modifier.fillMaxWidth(), horizontalArrangement = if (msg.role == "user") Arrangement.End else Arrangement.Start) { Surface(color = if (msg.role == "user") MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.large, modifier = Modifier.widthIn(max = 520.dp)) { Column(Modifier.padding(14.dp)) { Text(msg.content); if (msg.evidence.isNotBlank()) { HorizontalDivider(Modifier.padding(vertical = 8.dp)); Text("근거: ${msg.evidence.replace("\n", ", ")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary) } } } } }
@@ -186,12 +190,12 @@ private fun AssistantScreen(data: SecretarySnapshot, projectId: Long?, busy: Boo
 }
 
 @Composable
-private fun SettingsScreen(onBack: () -> Unit, onModels: () -> Unit, onBackup: (android.net.Uri) -> Unit, onRestore: (android.net.Uri) -> Unit) {
+private fun SettingsScreen(onBack: () -> Unit, onBackup: (android.net.Uri) -> Unit, onRestore: (android.net.Uri) -> Unit) {
   val backup = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { if (it != null) onBackup(it) }
   var pendingRestore by remember { mutableStateOf<android.net.Uri?>(null) }
   val restore = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { if (it != null) pendingRestore = it }
   Scaffold(topBar = { TopAppBar(title = { Text("설정") }, navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Rounded.ArrowBack, "뒤로") } }) }) { padding -> LazyColumn(Modifier.padding(padding), contentPadding = PaddingValues(16.dp)) {
-    item { ListItem(headlineContent = { Text("AI 모델") }, supportingContent = { Text("온디바이스 모델 다운로드·가져오기·관리") }, leadingContent = { Icon(Icons.Rounded.Memory, null) }, modifier = Modifier.clickable(onClick = onModels)) }
+    item { ListItem(headlineContent = { Text("기본 AI 모델") }, supportingContent = { Text("Gemma 4 E4B · 약 3.7GB · 모델 변경 기능은 제공하지 않습니다.") }, leadingContent = { Icon(Icons.Rounded.Memory, null) }) }
     item { ListItem(headlineContent = { Text("데이터 백업") }, supportingContent = { Text("DB와 등록 문서를 ZIP으로 내보냅니다.") }, leadingContent = { Icon(Icons.Rounded.Backup, null) }, modifier = Modifier.clickable { backup.launch("Sec_Ond_${System.currentTimeMillis()}.zip") }) }
     item { ListItem(headlineContent = { Text("데이터 복원") }, supportingContent = { Text("Sec_Ond 백업에서 사업·업무·문서를 복원합니다.") }, leadingContent = { Icon(Icons.Rounded.Restore, null) }, modifier = Modifier.clickable { restore.launch(arrayOf("application/zip", "application/octet-stream")) }) }
     item { ListItem(headlineContent = { Text("오프라인 우선") }, supportingContent = { Text("사업 정보, 문서, 대화 기록은 기기 내부에 저장됩니다.") }, leadingContent = { Icon(Icons.Rounded.Security, null) }) }
@@ -223,3 +227,5 @@ private fun SecretarySnapshot.projectName(id: Long?) = projects.firstOrNull { it
 private fun date(value: Long?): String = value?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDate().toString() } ?: "미정"
 private fun dDay(value: Long): String { val days = ChronoUnit.DAYS.between(java.time.LocalDate.now(), Instant.ofEpochMilli(value).atZone(ZoneId.systemDefault()).toLocalDate()); return when { days == 0L -> "D-Day"; days > 0 -> "D-$days"; else -> "D+${-days}" } }
 @Composable private fun Modifier.verticalScrollCompat(): Modifier = this.heightIn(max = 560.dp)
+
+private const val FIXED_ASSISTANT_MODEL_NAME = "Gemma-4-E4B-it"
